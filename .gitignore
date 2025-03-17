@@ -1,0 +1,33 @@
+# Ruby specific
+*.gem
+Gemfile.lock
+/pkg/
+
+# Local environment
+/.bundle/
+/vendor/bundle
+
+# Documentation and test results
+/.yardoc/
+/_yardoc/
+/doc/
+/rdoc/
+.rspec_status
+/coverage/
+/spec/reports/
+
+# Logs and temporary files
+jellygem.log
+/log/*
+!/log/.keep
+/tmp/*
+!/tmp/.keep
+.DS_Store
+*~
+
+# Local config
+/.jellygem.yml
+
+# IDE and editor files
+/.idea/
+/.vscode/
