@@ -1,0 +1,12 @@
+# Default configuration for Jellygem
+
+# The Movie Database API key
+tmdb_api_key: 'eb0e30eac4bf856683dbde0853e35bbb'
+
+# Default options
+dry_run: false
+verbose: false
+skip_images: false
+max_api_retries: 3
+force: false
+no_prompt: false

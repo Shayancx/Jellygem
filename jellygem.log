@@ -1,0 +1,28 @@
+# Logfile created on 2025-03-17 10:54:51 +0100 by logger.rb/v1.6.6
+2025-03-17 10:54:51 [INFO] Options: 
+2025-03-17 10:55:13 [INFO] Options: 
+2025-03-17 10:55:23 [INFO] Options: 
+2025-03-17 10:58:20 [INFO] Options: 
+2025-03-17 11:15:01 [INFO] Options: 
+2025-03-17 11:15:11 [ERROR] CLI Error: wrong number of arguments (given 2, expected 1)
+2025-03-17 11:15:11 [ERROR] /home/shayan/Jellygem/lib/jellygem/utils/ui_helper.rb:77:in `prompt_yes_no'
+/home/shayan/Jellygem/lib/jellygem/processors/series_processor.rb:61:in `confirm_continue'
+/home/shayan/Jellygem/lib/jellygem/processors/series_processor.rb:43:in `process_series_folder'
+/home/shayan/Jellygem/lib/jellygem/processors/series_processor.rb:27:in `process'
+/home/shayan/Jellygem/lib/jellygem/cli.rb:134:in `process_series'
+/home/shayan/Jellygem/lib/jellygem/cli.rb:31:in `run'
+./bin/jellygem:19:in `<main>'
+2025-03-17 11:17:53 [INFO] Options: 
+2025-03-17 11:17:59 [INFO] Renaming folder: supernatural -> Supernatural (2005)
+2025-03-17 11:17:59 [INFO] Successfully renamed folder to: /home/shayan/Supernatural (2005)
+2025-03-17 11:17:59 [INFO] Created series NFO: /home/shayan/Supernatural (2005)/tvshow.nfo
+2025-03-17 11:18:00 [INFO] Successfully downloaded image to: /home/shayan/Supernatural (2005)/poster.jpg
+2025-03-17 11:18:01 [INFO] Successfully downloaded image to: /home/shayan/Supernatural (2005)/fanart.jpg
+2025-03-17 11:18:02 [INFO] Renaming folder: Season 01 -> S01
+2025-03-17 11:18:02 [INFO] Successfully renamed folder to: /home/shayan/Supernatural (2005)/S01
+2025-03-17 11:18:02 [INFO] Successfully downloaded image to: /home/shayan/Supernatural (2005)/S01/season.jpg
+2025-03-17 11:18:02 [INFO] Created season NFO: /home/shayan/Supernatural (2005)/S01/season.nfo
+2025-03-17 11:18:03 [INFO] Renaming file: Supernatural.S01E01.[720p][XviD]_READNFO_YIFY_PROPER.torrent.mkv -> S01E01_Pilot.mkv
+2025-03-17 11:18:03 [INFO] Successfully renamed file to: /home/shayan/Supernatural (2005)/S01/S01E01_Pilot.mkv
+2025-03-17 11:18:03 [INFO] Created episode NFO: /home/shayan/Supernatural (2005)/S01/S01E01_Pilot.nfo
+2025-03-17 11:18:03 [INFO] Successfully downloaded image to: /home/shayan/Supernatural (2005)/S01/S01E01_Pilot-thumb.jpg

@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+puts 'Starting Jellygem...'
+
+# Add lib directory to load path
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
+puts "Load path set to include: #{File.expand_path('../lib', __dir__)}"
+
+begin
+  puts 'Requiring jellygem main file...'
+
+  # Require the main library file
+  require 'jellygem'
+
+  puts "Successfully loaded Jellygem. Running CLI with args: #{ARGV.inspect}"
+
+  # Initialize the CLI and run it with command-line arguments
+  Jellygem::CLI.new.run(ARGV)
+rescue Interrupt
+  puts "\nProgram interrupted. Exiting gracefully."
+  exit 1
+rescue StandardError => e
+  puts "\nError: #{e.message}"
+  puts "Error class: #{e.class}"
+  puts 'Backtrace:'
+  puts e.backtrace
+  exit 1
+end
