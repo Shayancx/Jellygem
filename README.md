@@ -1,6 +1,6 @@
 # Jellygem
 
-A powerful command-line tool to organize your TV series collection with proper file/folder renaming and metadata generation for Jellyfin, Kodi, Plex, and Emby media centers.
+A powerful command-line tool to organize your TV series collection with proper file/folder renaming and metadata generation for Jellyfin.
 
 ## Features
 
