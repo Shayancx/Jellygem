@@ -8,6 +8,8 @@ module Jellygem
     # File Helper module provides utilities for file operations
     # Including file/folder renaming and image downloading
     module FileHelper
+      include FileOperations
+
       # Safely rename a folder
       # @param original_path [String] original folder path
       # @param new_name [String] new folder name
@@ -115,104 +117,6 @@ module Jellygem
         Jellygem.logger.info("[DRY RUN] Would rename file: #{original_name} -> #{new_name}")
       end
 
-      # Safely rename a folder with error handling
-      # @param original_path [String] original folder path
-      # @param new_path [String] new folder path
-      # @return [String] resulting folder path
-      def safely_rename_folder(original_path, new_path)
-        Jellygem.logger.info("Renaming folder: #{File.basename(original_path)} -> #{File.basename(new_path)}")
-
-        begin
-          # Check if source exists and is a directory
-          unless File.directory?(original_path)
-            Jellygem.logger.error("Cannot rename folder: source is not a directory: #{original_path}")
-            return original_path
-          end
-
-          # Handle destination exists case
-          return handle_existing_destination(original_path, new_path) if File.exist?(new_path)
-
-          # Create parent directory if needed
-          FileUtils.mkdir_p(File.dirname(new_path)) unless File.exist?(File.dirname(new_path))
-
-          # Perform the rename
-          FileUtils.mv(original_path, new_path)
-          Jellygem.logger.info("Successfully renamed folder to: #{new_path}")
-          new_path
-        rescue StandardError => e
-          Jellygem.logger.error("Failed to rename #{original_path}: #{e.message}")
-          original_path
-        end
-      end
-
-      # Handle case where destination already exists
-      # @param original_path [String] original folder path
-      # @param new_path [String] new folder path
-      # @return [String] resulting folder path
-      def handle_existing_destination(original_path, new_path)
-        Jellygem.logger.warn("Destination already exists: #{new_path}")
-        # If it's a directory, use it instead of trying to rename
-        if File.directory?(new_path)
-          Jellygem.logger.info("Using existing directory: #{new_path}")
-          new_path
-        else
-          Jellygem.logger.error('Destination exists but is not a directory')
-          original_path
-        end
-      end
-
-      # Safely rename a file with error handling
-      # @param original_path [String] original file path
-      # @param new_path [String] new file path
-      # @return [Boolean] true if successful
-      def safely_rename_file(original_path, new_path)
-        Jellygem.logger.info(
-          "Renaming file: #{File.basename(original_path)} -> #{File.basename(new_path)}"
-        )
-
-        begin
-          # Check if source exists and is a file
-          unless File.file?(original_path)
-            Jellygem.logger.error("Cannot rename file: source is not a file: #{original_path}")
-            return false
-          end
-
-          # Handle case where target exists
-          return handle_existing_file(new_path) if File.exist?(new_path)
-
-          # Create target directory if needed
-          ensure_directory_exists(File.dirname(new_path))
-
-          # Perform the rename
-          FileUtils.mv(original_path, new_path)
-          Jellygem.logger.info("Successfully renamed file to: #{new_path}")
-          true
-        rescue StandardError => e
-          Jellygem.logger.error("Failed to rename #{original_path}: #{e.message}")
-          false
-        end
-      end
-
-      # Handle case where target file already exists
-      # @param file_path [String] path to existing file
-      # @return [Boolean] true if handled successfully
-      def handle_existing_file(file_path)
-        if Jellygem.config.force
-          Jellygem.logger.warn("Overwriting existing file: #{file_path}")
-          FileUtils.rm_f(file_path)
-        else
-          Jellygem.logger.warn("Target file already exists: #{file_path}")
-        end
-        true
-      end
-
-      # Ensure a directory exists, creating it if needed
-      # @param directory [String] directory path
-      # @return [void]
-      def ensure_directory_exists(directory)
-        FileUtils.mkdir_p(directory) unless File.exist?(directory)
-      end
-
       # Safely download an image with error handling
       # @param url [String] image URL
       # @param save_path [String] path to save the image
@@ -220,40 +124,14 @@ module Jellygem
       def safely_download_image(url, save_path)
         Jellygem.logger.debug("Downloading image from #{url} => #{save_path}")
 
-        begin
-          # Create directory
-          ensure_directory_exists(File.dirname(save_path))
+        # Create directory and download file
+        ensure_directory_exists(File.dirname(save_path))
 
-          # Download using Net::HTTP
-          download_with_http(url, save_path)
-        rescue StandardError => e
-          Jellygem.logger.error("Failed to download image from #{url}: #{e.message}")
-          false
-        end
-      end
-
-      # Download image using Net::HTTP
-      # @param url [String] image URL
-      # @param save_path [String] path to save the image
-      # @return [Boolean] true if successful
-      def download_with_http(url, save_path)
-        uri = URI.parse(url)
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = (uri.scheme == 'https')
-
-        request = Net::HTTP::Get.new(uri.request_uri)
-        response = http.request(request)
-
-        if response.is_a?(Net::HTTPSuccess)
-          File.open(save_path, 'wb') do |file|
-            file.write(response.body)
-          end
-          Jellygem.logger.info("Successfully downloaded image to: #{save_path}")
-          true
-        else
-          Jellygem.logger.error("Failed to download: HTTP error #{response.code}")
-          false
-        end
+        # Use file downloader utility to handle complexity
+        FileDownloader.new.download(url, save_path)
+      rescue StandardError => e
+        Jellygem.logger.error("Failed to download image from #{url}: #{e.message}")
+        false
       end
     end
   end

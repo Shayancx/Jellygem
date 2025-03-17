@@ -49,31 +49,49 @@ module Jellygem
       # @param filename [String] episode filename
       # @return [Hash, nil] hash with season and episode numbers or nil if not detected
       def parse_episode_info(filename)
-        # Try to match common episode numbering patterns
-        patterns = [
-          # S01E01 pattern
-          { regex: /S(\d+)E(\d+)/i, season_index: 1, episode_index: 2 },
-
-          # 1x01 pattern
-          { regex: /(\d+)x(\d+)/i, season_index: 1, episode_index: 2 },
-
-          # Series 101 pattern (S01E01)
-          { regex: /\b(\d)(\d{2})\b/, season_index: 1, episode_index: 2 }
-        ]
-
-        patterns.each do |pattern|
-          if filename =~ pattern[:regex]
-            return {
-              season: ::Regexp.last_match(pattern[:season_index]).to_i,
-              episode: ::Regexp.last_match(pattern[:episode_index]).to_i
-            }
-          end
-        end
-
-        nil
+        # Try each pattern until one matches
+        try_standard_episode_pattern(filename) ||
+          try_numeric_episode_pattern(filename) ||
+          try_series_style_pattern(filename)
       end
 
       private
+
+      # Try S01E01 pattern for episode parsing
+      # @param filename [String] episode filename
+      # @return [Hash, nil] hash with season and episode numbers or nil if not matched
+      def try_standard_episode_pattern(filename)
+        return unless filename =~ /S(\d+)E(\d+)/i
+
+        {
+          season: ::Regexp.last_match(1).to_i,
+          episode: ::Regexp.last_match(2).to_i
+        }
+      end
+
+      # Try 1x01 pattern for episode parsing
+      # @param filename [String] episode filename
+      # @return [Hash, nil] hash with season and episode numbers or nil if not matched
+      def try_numeric_episode_pattern(filename)
+        return unless filename =~ /(\d+)x(\d+)/i
+
+        {
+          season: ::Regexp.last_match(1).to_i,
+          episode: ::Regexp.last_match(2).to_i
+        }
+      end
+
+      # Try Series 101 pattern (S01E01) for episode parsing
+      # @param filename [String] episode filename
+      # @return [Hash, nil] hash with season and episode numbers or nil if not matched
+      def try_series_style_pattern(filename)
+        return unless filename =~ /\b(\d)(\d{2})\b/
+
+        {
+          season: ::Regexp.last_match(1).to_i,
+          episode: ::Regexp.last_match(2).to_i
+        }
+      end
 
       # Sanitize folder name by removing common patterns and noise
       # @param folder_name [String] original folder name

@@ -8,12 +8,16 @@ require 'httparty'
 require 'cgi'
 
 # Utils
-require 'jellygem/utils/ui_helper'
+require 'jellygem/utils/file_operations'
+require 'jellygem/utils/file_downloader'
 require 'jellygem/utils/file_helper'
+require 'jellygem/utils/ui_helper'
 
 # Core components
 require 'jellygem/config'
+require 'jellygem/tmdb_request_handler'
 require 'jellygem/tmdb_client'
+require 'jellygem/cli_options'
 
 # Formatters
 require 'jellygem/formatters/base_formatter'
@@ -29,8 +33,12 @@ require 'jellygem/models/episode'
 # Processors
 require 'jellygem/processors/base_processor'
 require 'jellygem/processors/metadata_processor'
+require 'jellygem/processors/episode_processor_helper'
 require 'jellygem/processors/episode_processor'
 require 'jellygem/processors/season_processor'
+require 'jellygem/processors/series_info_formatter'
+require 'jellygem/processors/series_artwork_handler'
+require 'jellygem/processors/series_search_handler'
 require 'jellygem/processors/series_processor'
 
 # CLI interface

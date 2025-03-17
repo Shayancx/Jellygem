@@ -95,19 +95,25 @@ module Jellygem
       # @param episode [Models::Episode] episode data
       # @return [String] updated NFO content
       def add_guest_stars_to_nfo(content, episode)
-        # Add guest stars
-        if episode.guest_stars&.any?
-          episode.guest_stars.each do |actor|
-            content << <<~ACTOR
-              <actor>
-                <name>#{escape_xml(actor['name'])}</name>
-                <role>#{escape_xml(actor['character'] || '')}</role>
-              </actor>
-            ACTOR
-          end
+        return content unless episode.guest_stars&.any?
+
+        episode.guest_stars.each do |actor|
+          content << format_actor_nfo(actor)
         end
 
         content
+      end
+
+      # Formats a single actor for the NFO file
+      # @param actor [Hash] actor data
+      # @return [String] XML for the actor
+      def format_actor_nfo(actor)
+        <<~ACTOR
+          <actor>
+            <name>#{escape_xml(actor['name'])}</name>
+            <role>#{escape_xml(actor['character'] || '')}</role>
+          </actor>
+        ACTOR
       end
     end
   end

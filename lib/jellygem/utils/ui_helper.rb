@@ -74,7 +74,7 @@ module Jellygem
       # @param message [String] prompt message
       # @param default [Boolean] default value
       # @return [Boolean] true for yes, false for no
-      def prompt_yes_no(message, default = true)
+      def prompt_yes_no(message, default: true)
         # Skip prompts in no-prompt mode
         if Jellygem.config.no_prompt
           Jellygem.logger.info("[NO PROMPT] Using default value for yes/no: #{default}")

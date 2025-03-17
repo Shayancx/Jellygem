@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-# frozen_string_literal: true
 
 module Jellygem
   # Command Line Interface for Jellygem
@@ -10,6 +9,7 @@ module Jellygem
     def initialize
       @logger = Jellygem.logger
       @processor = Processors::SeriesProcessor.new
+      @options_handler = CLIOptions.new(@logger)
     end
 
     # Main entry point for the command line interface
@@ -20,16 +20,8 @@ module Jellygem
       return show_help if help_requested?(args)
       return show_version if version_requested?(args)
 
-      # Process options and get path
-      options = parse_options(args)
-      apply_options(options)
-      series_path = extract_path(args)
-
-      # Validate path
-      exit_with_error("'#{series_path}' is not a valid directory.") unless valid_directory?(series_path)
-
-      # Start processing
-      process_series(series_path)
+      # Process normal command flow
+      process_normal_command(args)
     rescue Interrupt
       handle_interrupt
     rescue StandardError => e
@@ -37,6 +29,30 @@ module Jellygem
     end
 
     private
+
+    # Process a standard (non-help, non-version) command
+    # @param args [Array<String>] command line arguments
+    # @return [void]
+    def process_normal_command(args)
+      # Process options and get path
+      options = @options_handler.parse_options(args)
+      @options_handler.apply_options(options)
+      series_path = @options_handler.extract_path(args)
+
+      # Validate path and start processing
+      validate_and_process_path(series_path)
+    end
+
+    # Validate path and process series if valid
+    # @param series_path [String] path to process
+    # @return [void]
+    def validate_and_process_path(series_path)
+      if valid_directory?(series_path)
+        process_series(series_path)
+      else
+        exit_with_error("'#{series_path}' is not a valid directory.")
+      end
+    end
 
     # Check if help was requested
     # @param args [Array<String>] command line arguments
@@ -55,68 +71,13 @@ module Jellygem
     # Display help information
     # @return [void]
     def show_help
-      puts <<~HELP
-        Jellygem #{VERSION}
-
-        A tool to organize TV series folders with metadata for media centers.
-
-        Usage: jellygem [options] [path/to/series]
-
-        Options:
-          -h, --help           Show this help message
-          -v, --version        Show version information
-          --dry-run            Simulate operations without making changes
-          --verbose            Show detailed output
-          --skip-images        Skip downloading images
-          --force              Override existing files
-          --no-prompt          Use defaults without prompting
-
-        Examples:
-          jellygem ~/TV/Supernatural
-          jellygem --dry-run "Breaking Bad S01-S05 1080p"
-          jellygem --skip-images --no-prompt /media/shows/GameOfThrones
-      HELP
+      @options_handler.show_help
     end
 
     # Display version information
     # @return [void]
     def show_version
       puts "Jellygem version #{VERSION}"
-    end
-
-    # Parse command line options
-    # @param args [Array<String>] command line arguments
-    # @return [Hash] parsed options
-    def parse_options(args)
-      {
-        dry_run: args.include?('--dry-run'),
-        verbose: args.include?('--verbose'),
-        skip_images: args.include?('--skip-images'),
-        force: args.include?('--force'),
-        no_prompt: args.include?('--no-prompt')
-      }
-    end
-
-    # Apply parsed options to global configuration
-    # @param options [Hash] parsed options
-    # @return [void]
-    def apply_options(options)
-      Jellygem.config.update(options)
-
-      # Configure logger verbosity
-      Jellygem.logger.level = Logger::DEBUG if options[:verbose]
-
-      # Log applied options
-      @logger.info("Options: #{options.select { |_, v| v }.keys.join(', ')}")
-    end
-
-    # Extract path from command line arguments
-    # @param args [Array<String>] command line arguments
-    # @return [String] expanded path
-    def extract_path(args)
-      # Find the first argument that isn't an option
-      path = args.find { |arg| !arg.start_with?('-') } || Dir.pwd
-      File.expand_path(path)
     end
 
     # Check if path is a valid directory
@@ -152,9 +113,12 @@ module Jellygem
     # @return [void]
     def display_success_message
       puts success("\nProcessing complete! Your media is now organized for Jellyfin/Kodi/Plex.")
+      display_dry_run_message if Jellygem.config.dry_run
+    end
 
-      return unless Jellygem.config.dry_run
-
+    # Display message specific to dry-run mode
+    # @return [void]
+    def display_dry_run_message
       puts info('This was a dry run. No actual changes were made.')
       puts info('Run again without --dry-run to apply the changes.')
     end
@@ -170,18 +134,31 @@ module Jellygem
     # @param error [StandardError] error that occurred
     # @return [void]
     def handle_error(error)
-      puts error("\nError: #{error.message}")
-      puts 'Check the log file for details.'
+      log_error(error)
+      print_error_message(error)
+      exit 1
+    end
+
+    # Log error details
+    # @param error [StandardError] error that occurred
+    # @return [void]
+    def log_error(error)
       @logger.error("CLI Error: #{error.message}")
       @logger.error(error.backtrace.join("\n"))
+    end
+
+    # Print error message to user
+    # @param error [StandardError] error that occurred
+    # @return [void]
+    def print_error_message(error)
+      puts error("\nError: #{error.message}")
+      puts 'Check the log file for details.'
 
       # Print backtrace in debug mode
-      if ENV['JELLYGEM_DEBUG']
-        puts "\nBacktrace:"
-        puts error.backtrace
-      end
+      return unless ENV['JELLYGEM_DEBUG']
 
-      exit 1
+      puts "\nBacktrace:"
+      puts error.backtrace
     end
 
     # Exit with error message

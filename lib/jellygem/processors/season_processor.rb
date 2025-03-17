@@ -57,16 +57,25 @@ module Jellygem
         # Get season details from TMDB
         season_details = @tmdb_client.fetch_season_details(series_id, season_num)
 
-        # Create a Season model
-        if season_details
-          Models::Season.new(season_details)
-        else
-          # Create minimal season object
-          Models::Season.new({
-                               'season_number' => season_num,
-                               'name' => "Season #{season_num}"
-                             })
-        end
+        # Create a Season model - either with TMDB data or minimal data
+        season_details ? create_detailed_season(season_details) : create_minimal_season(season_num)
+      end
+
+      # Create season with full details from TMDB
+      # @param season_details [Hash] season details from TMDB
+      # @return [Models::Season] season model
+      def create_detailed_season(season_details)
+        Models::Season.new(season_details)
+      end
+
+      # Create minimal season object when TMDB data isn't available
+      # @param season_num [Integer] season number
+      # @return [Models::Season] minimal season model
+      def create_minimal_season(season_num)
+        Models::Season.new({
+                             'season_number' => season_num,
+                             'name' => "Season #{season_num}"
+                           })
       end
 
       # Process the season folder - rename, add metadata, process episodes
@@ -120,18 +129,29 @@ module Jellygem
       def download_best_season_poster(series_id, season_number, poster_path)
         season_images = @tmdb_client.fetch_season_images(series_id, season_number)
 
-        if season_images && !season_images['posters'].empty?
-          # Get best rated poster
-          best_poster = season_images['posters'].max_by { |p| p['vote_average'] || 0 }
-          poster_url = @tmdb_client.image_url(best_poster['file_path'])
+        # Only proceed if we have poster images
+        if season_images && season_images['posters']&.any?
+          download_best_poster(season_images, poster_path)
+        else
+          puts warning('No season poster available from TMDB.')
+          false
+        end
+      end
 
-          if download_image(poster_url, poster_path)
-            puts success('Downloaded season poster.')
-            return true
-          end
+      # Download the highest rated poster image
+      # @param season_images [Hash] season images data
+      # @param poster_path [String] path to save poster
+      # @return [Boolean] true if successful
+      def download_best_poster(season_images, poster_path)
+        # Get best rated poster
+        best_poster = season_images['posters'].max_by { |p| p['vote_average'] || 0 }
+        poster_url = @tmdb_client.image_url(best_poster['file_path'])
+
+        if download_image(poster_url, poster_path)
+          puts success('Downloaded season poster.')
+          return true
         end
 
-        puts warning('No season poster available from TMDB.')
         false
       end
     end

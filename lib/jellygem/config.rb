@@ -28,7 +28,15 @@ module Jellygem
 
     # Sets default configuration values
     def set_defaults
-      # Default values
+      # Set basic defaults before trying to load from file
+      set_basic_defaults
+
+      # Load from config file if it exists
+      load_defaults_from_file if File.exist?(DEFAULT_CONFIG_FILE)
+    end
+
+    # Set basic default values
+    def set_basic_defaults
       @tmdb_api_key = 'eb0e30eac4bf856683dbde0853e35bbb' # Default API key for TMDB
       @dry_run = false
       @verbose = false
@@ -36,10 +44,10 @@ module Jellygem
       @max_api_retries = 3
       @force = false
       @no_prompt = false
+    end
 
-      # Load from config file if it exists
-      return unless File.exist?(DEFAULT_CONFIG_FILE)
-
+    # Load default values from config file
+    def load_defaults_from_file
       content = File.read(DEFAULT_CONFIG_FILE)
       config = YAML.safe_load(content)
       return unless config.is_a?(Hash)
@@ -64,10 +72,20 @@ module Jellygem
 
     # Loads configuration from environment variables
     def load_environment_variables
-      # Use environment variables if set
-      @tmdb_api_key = ENV['TMDB_API_KEY'] if ENV['TMDB_API_KEY']
+      # Load API key if set
+      load_api_key_from_env
 
-      # For boolean options, use string_to_bool to convert
+      # Load boolean options from environment variables
+      load_boolean_options_from_env
+    end
+
+    # Load API key from environment
+    def load_api_key_from_env
+      @tmdb_api_key = ENV['TMDB_API_KEY'] if ENV['TMDB_API_KEY']
+    end
+
+    # Load boolean options from environment variables
+    def load_boolean_options_from_env
       boolean_options = {
         'JELLYGEM_DRY_RUN' => :dry_run,
         'JELLYGEM_VERBOSE' => :verbose,
